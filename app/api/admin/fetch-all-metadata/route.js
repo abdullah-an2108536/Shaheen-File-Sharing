@@ -24,7 +24,9 @@ export async function GET() {
     for (const fileName of uniqueFiles) {
       if (!fileName.endsWith(".metadata.json")) continue;
 
-      const key = fileName.replace(".metadata.json", "").replace(/__SLASH__/g, "/");
+      const key = fileName
+        .replace(".metadata.json", "")
+        .replace(/__SLASH__/g, "/");
 
       if (!metadataMap[key]) {
         metadataMap[key] = {
@@ -53,10 +55,18 @@ export async function GET() {
         }
       } catch {}
     }
+    // Remove entries with missing or malformed metadata
+    const validFiles = Object.values(metadataMap).filter((entry) => {
+      const m = entry.metadata;
+      return m && typeof m.name === "string" && m.uploadDate && m.fileSize;
+    });
 
-    return NextResponse.json({ files: Object.values(metadataMap) }, { status: 200 });
+    return NextResponse.json({ files: validFiles }, { status: 200 });
   } catch (err) {
     console.error("❌ Admin Metadata Fetch Failed:", err);
-    return NextResponse.json({ error: "Failed to load metadata" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to load metadata" },
+      { status: 500 }
+    );
   }
 }

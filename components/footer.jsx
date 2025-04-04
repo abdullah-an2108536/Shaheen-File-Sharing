@@ -19,7 +19,7 @@ export default function Footer() {
               device unencrypted.
             </p>
             <div className="mt-6 flex gap-4">
-              <Link href="https://github.com" className="text-muted-foreground hover:text-foreground">
+              <Link href="https://github.com/abdullah-an2108536/Shaheen-File-Sharing" className="text-muted-foreground hover:text-foreground">
                 <Github className="h-5 w-5" />
                 <span className="sr-only">GitHub</span>
               </Link>

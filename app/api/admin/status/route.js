@@ -21,6 +21,10 @@ export async function GET() {
     const googleFiles = await listAllMetadataFilesFromGoogleDrive();
     const oneDriveFiles = await listAllMetadataFilesFromOneDrive();
     const uniqueFiles = new Set([...googleFiles, ...oneDriveFiles]);
+    
+
+    const googlePresent = new Set();
+    const oneDrivePresent = new Set();
 
     for (const fileName of uniqueFiles) {
       if (!fileName.endsWith(".metadata.json")) continue;
@@ -36,29 +40,54 @@ export async function GET() {
         };
       }
 
-      try {
-        if (googleFiles.includes(fileName)) {
+      let metadataFound = false;
+
+      // ✅ Check Google Drive first
+      if (googleFiles.includes(fileName)) {
+        try {
           const file = await retrieveFileFromGoogleDrive(googleAuth, fileName);
-          metadataMap[key].metadata = JSON.parse(file.buffer.toString("utf-8"));
+          const content = JSON.parse(file.buffer.toString("utf-8"));
+          if (content?.name && content?.fileSize && content?.uploadDate) {
+            metadataMap[key].metadata = content;
+            uploadDates.push(content.uploadDate);
+            metadataFound = true;
+            googlePresent.add(key);
+          }
+        } catch (e) {
+          console.warn(`⚠️ Google fetch failed for ${fileName}:`, e.message);
         }
-      } catch {}
+      }
 
-      try {
-        if (oneDriveFiles.includes(fileName) && !metadataMap[key].metadata) {
-          const file = await retrieveFileFromOneDrive(oneDriveToken, fileName);
-          metadataMap[key].metadata = JSON.parse(file.buffer.toString("utf-8"));
+      // ✅ Fallback to OneDrive (or also count if present even if not the source)
+      if (oneDriveFiles.includes(fileName)) {
+        try {
+          if (!metadataFound) {
+            const file = await retrieveFileFromOneDrive(oneDriveToken, fileName);
+            const content = JSON.parse(file.buffer.toString("utf-8"));
+            if (content?.name && content?.fileSize && content?.uploadDate) {
+              metadataMap[key].metadata = content;
+              uploadDates.push(content.uploadDate);
+              metadataFound = true;
+            }
+          }
+          oneDrivePresent.add(key); // Always count if exists
+        } catch (e) {
+          console.warn(`⚠️ OneDrive fetch failed for ${fileName}:`, e.message);
         }
-      } catch {}
-
-      const uploadDate = metadataMap[key].metadata?.uploadDate;
-      if (uploadDate) uploadDates.push(uploadDate);
+      }
     }
+
+    const validFiles = Object.values(metadataMap).filter((entry) => !!entry.metadata);
 
     const googleStats = await getGoogleDriveStorageUsage(googleAuth);
     const oneDriveStats = await getOneDriveStorageUsage(oneDriveToken);
 
     return NextResponse.json({
-      totalFiles: Object.keys(metadataMap).length,
+      totalFiles: validFiles.length,
+      filesPerCloud: {
+        google: googlePresent.size,
+        oneDrive: oneDrivePresent.size
+      },
       uploadDates,
       storage: {
         google: googleStats,

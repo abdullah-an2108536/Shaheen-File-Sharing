@@ -71,50 +71,50 @@ export default function AdminPage() {
     fetchStatus();
   }, []);
 
-  const formatPieData = (
-    used,
-    free,
-    usedLabel,
-    freeLabel,
-    usedColor,
-    freeColor
-  ) => [
-    { name: usedLabel, value: used, color: usedColor },
-    { name: freeLabel, value: free, color: freeColor }
-  ];
+  // const formatPieData = (
+  //   used,
+  //   free,
+  //   usedLabel,
+  //   freeLabel,
+  //   usedColor,
+  //   freeColor
+  // ) => [
+  //   { name: usedLabel, value: used, color: usedColor },
+  //   { name: freeLabel, value: free, color: freeColor }
+  // ];
 
-  const googlePieData = status
-    ? formatPieData(
-        status.storage.google.used,
-        status.storage.google.free,
-        "Used",
-        "Free",
-        "#2F3EB1",
-        "#FF33A1"
-      )
-    : [];
+  // const googlePieData = status
+  //   ? formatPieData(
+  //       status.storage.google.used,
+  //       status.storage.google.free,
+  //       "Used",
+  //       "Free",
+  //       "#2F3EB1",
+  //       "#FF33A1"
+  //     )
+  //   : [];
 
-  const oneDrivePieData = status
-    ? formatPieData(
-        status.storage.oneDrive.used,
-        status.storage.oneDrive.free,
-        "Used",
-        "Free",
-        "#3366CC",
-        "#FF33A1"
-      )
-    : [];
+  // const oneDrivePieData = status
+  //   ? formatPieData(
+  //       status.storage.oneDrive.used,
+  //       status.storage.oneDrive.free,
+  //       "Used",
+  //       "Free",
+  //       "#3366CC",
+  //       "#FF33A1"
+  //     )
+  //   : [];
 
-  const combinedPieData = status
-    ? formatPieData(
-        status.storage.combined.used,
-        status.storage.combined.free,
-        "Used",
-        "Free",
-        "#FFA500",
-        "#00C49F"
-      )
-    : [];
+  // const combinedPieData = status
+  //   ? formatPieData(
+  //       status.storage.combined.used,
+  //       status.storage.combined.free,
+  //       "Used",
+  //       "Free",
+  //       "#FFA500",
+  //       "#00C49F"
+  //     )
+  //   : [];
 
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -155,45 +155,66 @@ export default function AdminPage() {
           <div className="text-3xl font-bold text-center mb-6">Admin Main</div>
 
           {/* Status Cards */}
-          <div className="flex justify-center space-x-6 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-5 gap-4 mb-6">
+            <StatusCard
+              icon={BarChart}
+              iconBgColor="bg-blue-200"
+              title="Files in Main Google Drive"
+              value={status?.filesPerCloud?.google ?? "—"}
+              showPercentage={false}
+              small
+            />
             <StatusCard
               icon={BarChart}
               iconBgColor="bg-pink-200"
-              title="Total Files in Use"
-              value={status ? status.totalFiles : "—"}
+              title="Files in Backup One Drive"
+              value={status?.filesPerCloud?.oneDrive ?? "—"}
               showPercentage={false}
+              small
+            />
+            <StatusCard
+              icon={BarChart}
+              iconBgColor="bg-purple-200"
+              title="Total No. Of Files in All Storages"
+              value={
+                String(status?.filesPerCloud?.google +
+                  status?.filesPerCloud?.oneDrive) ?? "—"
+              }
+              showPercentage={false}
+              small
             />
             <StatusCard
               icon={Settings}
               iconBgColor="bg-teal-200"
-              title="All Storage Remaining"
+              title="Storage Left"
               value={`${(
                 (status?.storage?.combined?.free || 0) /
                 1024 ** 3
               ).toFixed(2)} GB`}
               showPercentage={false}
+              small
             />
-
             <StatusCard
               icon={Cloud}
               iconBgColor="bg-yellow-200"
-              title="All Storage Used"
+              title="Storage Used"
               value={`${(
                 (status?.storage?.combined?.used || 0) /
                 1024 ** 3
               ).toFixed(2)} GB`}
               showPercentage={false}
+              small
             />
           </div>
 
           {/* Grid Layout with 3 Columns (Charts + Status Column) */}
-          <div className="grid grid-cols-2 gap-6">
+          <div className="grid grid-cols-2 gap-3">
             {/* Left Column - Transfers Chart */}
             <div className="bg-white shadow-md rounded-lg p-4 h-auto min-h-[300px] flex items-center justify-center">
               <TransfersChart data={transferData} />
             </div>
 
-            {/* Middle Column - Storage Status Cards */}
+            {/* right Column - Storage Status Cards */}
             <div className="bg-white shadow-md rounded-lg p-4 flex flex-col space-y-4">
               <div className="text-lg font-semibold text-gray-700">
                 Storage Status
@@ -210,11 +231,12 @@ export default function AdminPage() {
                       status.storage.oneDrive.free /
                       1024 ** 3
                     ).toFixed(2)} GB`}
-                    percentage={Math.round(
-                      (status.storage.oneDrive.free /
-                        (status.storage.oneDrive.used +
-                          status.storage.oneDrive.free)) *
+                    percentage={Number(
+                      (
+                        (status.storage.oneDrive.free /
+                          status.storage.oneDrive.total) *
                         100
+                      ).toFixed(2)
                     )}
                     showPercentage={true}
                   />
@@ -227,11 +249,12 @@ export default function AdminPage() {
                     value={`${(status.storage.google.free / 1024 ** 3).toFixed(
                       2
                     )} GB`}
-                    percentage={Math.round(
-                      (status.storage.google.free /
-                        (status.storage.google.used +
-                          status.storage.google.free)) *
+                    percentage={Number(
+                      (
+                        (status.storage.google.free /
+                          status.storage.google.total) *
                         100
+                      ).toFixed(2)
                     )}
                     showPercentage={true}
                   />
@@ -245,11 +268,12 @@ export default function AdminPage() {
                       status.storage.combined.free /
                       1024 ** 3
                     ).toFixed(2)} GB`}
-                    percentage={Math.round(
-                      (status.storage.combined.free /
-                        (status.storage.combined.used +
-                          status.storage.combined.free)) *
+                    percentage={Number(
+                      (
+                        (status.storage.combined.free /
+                          status.storage.combined.total) *
                         100
+                      ).toFixed(2)
                     )}
                     showPercentage={true}
                   />
