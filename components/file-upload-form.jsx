@@ -32,7 +32,7 @@ export default function FileUploadForm() {
   const [debugInfo, setDebugInfo] = useState({})
 
   // file validation constants
-  const MAX_FILE_SIZE = 50 * 1024 * 1024 // 50MB in bytes
+  const MAX_FILE_SIZE = 4 * 1024 * 1024 // 4MB in bytes
   const ALLOWED_FILE_TYPES = [
     "application/pdf", // PDF
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // DOCX
@@ -198,7 +198,7 @@ export default function FileUploadForm() {
       // Validate file size
       if (file.size > MAX_FILE_SIZE) {
         setFileError(
-          `File size exceeds the maximum limit of 50MB. Your file is ${(file.size / (1024 * 1024)).toFixed(2)}MB.`,
+          `File size exceeds the maximum limit of 4 MB (File size limited in Free Version of Shaheen). Your file is ${(file.size / (1024 * 1024)).toFixed(2)}MB.`,
         )
         return
       }
@@ -226,7 +226,7 @@ export default function FileUploadForm() {
       // Validate file size
       if (file.size > MAX_FILE_SIZE) {
         setFileError(
-          `File size exceeds the maximum limit of 50MB. Your file is ${(file.size / (1024 * 1024)).toFixed(2)}MB.`,
+          `File size exceeds the maximum limit of 4MB. Your file is ${(file.size / (1024 * 1024)).toFixed(2)}MB.`,
         )
         return
       }
