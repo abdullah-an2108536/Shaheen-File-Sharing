@@ -226,7 +226,7 @@ export default function FileUploadForm() {
       // Validate file size
       if (file.size > MAX_FILE_SIZE) {
         setFileError(
-          `File size exceeds the maximum limit of 4MB. Your file is ${(file.size / (1024 * 1024)).toFixed(2)}MB.`,
+          `File size exceeds the maximum limit of 4 MB. Your file is ${(file.size / (1024 * 1024)).toFixed(2)}MB.`,
         )
         return
       }
