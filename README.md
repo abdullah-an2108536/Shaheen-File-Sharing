@@ -4,6 +4,13 @@ Shaheen is an open-source secure file-sharing solution built with **React** and 
 
 ---
 
+## 🌐 Live Demo
+
+🔗 [shaheen-file-sharing.tech](https://shaheen-file-sharing.tech)  
+🔗 [Alternative Link](https://shaheen-file-sharing-aarmmbclm-abdullah-an2108536s-projects.vercel.app)
+
+---
+
 ## Table of Contents
 
 -   [Overview](#overview)
@@ -81,7 +88,7 @@ You can set access limits, expiration time, and more.
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/shaheen.git
+git clone git@github.com:abdullah-an2108536/Shaheen-File-Sharing.git
 cd shaheen
 
 # Install dependencies
