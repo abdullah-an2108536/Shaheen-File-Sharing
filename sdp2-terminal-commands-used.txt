@@ -1,0 +1,31 @@
+#Sdp Teminal commands used
+
+# Don't use this
+#npx create-next-app@latest phase-2-shaheen-project --use-npm --eslint --tailwind --src-dir --app --import-alias '@/*'
+
+
+npm i
+
+npm install react@18 react-dom@18
+
+npx shadcn@latest init
+
+# Add Components
+
+# You can now start adding components to your project example adding a button
+npx shadcn@latest add button
+
+npm install react-dropzone lucide-react nodemailer
+
+npm install recharts
+
+npm i react-collapse
+
+# Don't use this
+#DON't use this -- >npm install cookie 
+
+# Don't use this
+#DON't use this -- >npm install jsonwebtoken
+
+npm run dev
+
