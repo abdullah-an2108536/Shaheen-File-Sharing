@@ -268,7 +268,7 @@ describe('FileUploadForm Integration Tests', () => {
       fireEvent.change(hiddenInput, { target: { files: [oversizedFile] } });
     });
     
-    expect(screen.getByText((content) => content.includes('File size exceeds the maximum limit of 50MB'))).toBeInTheDocument();
+    expect(screen.getByText((content) => content.includes('File size exceeds the maximum limit of 4MB'))).toBeInTheDocument();
     
     // Create a mock file with invalid type
     const invalidTypeFile = createMockFile('invalid.exe', 'application/exe', 1024 * 1024);
