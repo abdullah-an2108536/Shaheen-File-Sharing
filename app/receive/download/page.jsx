@@ -58,12 +58,15 @@ export default function DownloadPage() {
           : b.fileName.localeCompare(a.fileName),
       startDate: (a, b) =>
         sortAsc
-          ? new Date(a.startDate) - new Date(b.startDate)
-          : new Date(b.startDate) - new Date(a.startDate),
+          ? (a.startDate?.getTime() || 0) - (b.startDate?.getTime() || 0)
+          : (b.startDate?.getTime() || 0) - (a.startDate?.getTime() || 0),
+
       expirationDate: (a, b) =>
         sortAsc
-          ? new Date(a.expirationDate) - new Date(b.expirationDate)
-          : new Date(b.expirationDate) - new Date(a.expirationDate)
+          ? (a.expirationDate?.getTime() || 0) -
+            (b.expirationDate?.getTime() || 0)
+          : (b.expirationDate?.getTime() || 0) -
+            (a.expirationDate?.getTime() || 0)
     };
 
     return filtered.sort(sortFn[sortField]);
@@ -126,8 +129,16 @@ export default function DownloadPage() {
               id: senderPublicKey,
               fileName: metadata.name,
               description: metadata.description || "No description",
-              startDate: metadata.startDate || "",
-              expirationDate: metadata.expirationDate || "",
+              startDate: metadata.startDate
+                ? new Date(metadata.startDate)
+                : null,
+              expirationDate: metadata.expirationDate
+                ? new Date(metadata.expirationDate)
+                : new Date(
+                    new Date(metadata.uploadDate).getTime() +
+                      60 * 24 * 60 * 60 * 1000
+                  ),
+
               fileSize: `${(metadata.fileSize / 1024).toFixed(2)} KB`,
               fileType: metadata.fileType,
               uploadDate: new Date(metadata.uploadDate).toLocaleDateString(),
