@@ -4,7 +4,7 @@ import Navigation from "@/components/navigation";
 // import TopBar from "@/components/ui/TopBar";
 import StatusCard from "@/components/og-comp/admin/StatusCard";
 import TransfersChart from "@/components/og-comp/admin/TransfersChart";
-import StorageOverview from "@/components/og-comp/admin/StorageOverview";
+// import StorageOverview from "@/components/og-comp/admin/StorageOverview";
 import {
   BarChart,
   User,
