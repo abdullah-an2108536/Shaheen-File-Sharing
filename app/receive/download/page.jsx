@@ -255,7 +255,6 @@ export default function DownloadPage() {
             <LoadingSkeleton />
           ) : (
             <div>
-
               <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-3">
                 <div>
                   <SearchBar query={query} setQuery={setQuery} />
@@ -267,10 +266,13 @@ export default function DownloadPage() {
                       key={field}
                       onClick={() => {
                         if (sortField === field) {
-                          setSortAsc((prev) => !prev);
+                          setSortAsc((prev) => {
+                            const newDir = !prev;
+                            return newDir;
+                          });
                         } else {
                           setSortField(field);
-                          setSortAsc(true);
+                          setSortAsc(true); // default to ascending when changing field
                         }
                       }}
                       className={`flex items-center px-3 py-1 rounded-md border ${
@@ -283,14 +285,12 @@ export default function DownloadPage() {
                       {field === "startDate" && "Start Date"}
                       {field === "expirationDate" && "Expiry"}
                       {sortField === field && (
-                        <div className={`ml-1 ${!sortAsc ? "rotate-180" : ""}`}>
-                          <SortAsc
-                            className={`ml-1 transition-transform ${
-                              !sortAsc ? "rotate-270" : ""
-                            }`}
-                            size={16}
-                          />
-                        </div>
+                        <SortAsc
+                          className={`ml-1 transition-transform duration-200 ${
+                            sortField === field && !sortAsc ? "rotate-180" : ""
+                          }`}
+                          size={16}
+                        />
                       )}
                     </button>
                   ))}
@@ -308,11 +308,11 @@ export default function DownloadPage() {
               </div>
               <div className="flex justify-between border rounded-sm p-4 text-sm text-muted-foreground my-2">
                 <div className="flex items-center gap-1">
-                  <Info className="h-4 w-4 pr-1"/>
+                  <Info className="h-4 w-4 pr-1" />
                   <span>
                     if you don't see the file you are looking for, then this
-                    means the file may not been uploaded or has expired.
-                    Refresh the page to see the latest changes!
+                    means the file may not been uploaded or has expired. Refresh
+                    the page to see the latest changes!
                   </span>
                 </div>
               </div>
