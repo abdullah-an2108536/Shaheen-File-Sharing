@@ -52,8 +52,24 @@ function groupTransfers(uploadDates) {
 export default function AdminPage() {
   const [status, setStatus] = useState(null);
   const [transferData, setTransferData] = useState([]);
+  const [isAdmin, setIsAdmin] = useState(null); // initially unknown
 
   useEffect(() => {
+    const checkAdmin = async () => {
+      try {
+        const res = await fetch("/api/check-admin");
+        const { isAdmin } = await res.json();
+        setIsAdmin(isAdmin);
+      } catch (err) {
+        console.error("Failed to check admin status:", err);
+        setIsAdmin(false);
+      }
+    };
+    checkAdmin();
+  }, []);
+
+  useEffect(() => {
+    if (!isAdmin) return; // Don't fetch status if not admin
     const fetchStatus = async () => {
       try {
         const res = await fetch("/api/admin/status");
@@ -69,7 +85,24 @@ export default function AdminPage() {
       }
     };
     fetchStatus();
-  }, []);
+  }, [isAdmin]);
+
+  // useEffect(() => {
+  //   if (!isAdmin) return; // Don't fetch status if not admin
+  //   const fetchStatus = async () => {
+  //     try {
+  //       const res = await fetch("/api/admin/status");
+  //       const data = await res.json();
+  //       setStatus(data);
+  //     } catch (err) {
+  //       console.error("Failed to fetch status", err);
+  //     }
+  //   };
+
+  //   fetchStatus();
+  // }, []);
+
+  // const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // const formatPieData = (
   //   used,
@@ -116,40 +149,18 @@ export default function AdminPage() {
   //     )
   //   : [];
 
-  const [isAdmin, setIsAdmin] = useState(false);
-
-  useEffect(() => {
-    const checkAdmin = async () => {
-      const res = await fetch("/api/check-admin");
-      const { isAdmin } = await res.json();
-      setIsAdmin(isAdmin);
-    };
-
-    checkAdmin();
-  }, []);
-
-  useEffect(() => {
-    const fetchStatus = async () => {
-      try {
-        const res = await fetch("/api/admin/status");
-        const data = await res.json();
-        setStatus(data);
-      } catch (err) {
-        console.error("Failed to fetch status", err);
-      }
-    };
-
-    fetchStatus();
-  }, []);
-
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
   return (
     <div className="min-h-screen flex flex-col bg-gray-100">
       {/* Top Bar */}
-      <Navigation />
-      {/* Main Content */}
-      {isAdmin ? (
+
+      <Navigation showLoginWindow={isAdmin === false} isAdmin={isAdmin} />
+
+      {/* Wait until admin check is completed */}
+      {isAdmin === null ? (
+        <div className="text-center mt-20 text-gray-500 text-xl">
+          Checking access...
+        </div>
+      ) : isAdmin ? (
         <div className="flex-grow p-6">
           {/* Title */}
           <div className="text-3xl font-bold text-center mb-6">Admin Main</div>
@@ -177,8 +188,10 @@ export default function AdminPage() {
               iconBgColor="bg-purple-200"
               title="Total No. Of Files in All Storages"
               value={
-                String(status?.filesPerCloud?.google +
-                  status?.filesPerCloud?.oneDrive) ?? "—"
+                String(
+                  status?.filesPerCloud?.google +
+                    status?.filesPerCloud?.oneDrive
+                ) ?? "—"
               }
               showPercentage={false}
               small
@@ -208,7 +221,7 @@ export default function AdminPage() {
           </div>
 
           {/* Grid Layout with 3 Columns (Charts + Status Column) */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {/* Left Column - Transfers Chart */}
             <div className="bg-white shadow-md rounded-lg p-4 h-auto min-h-[300px] flex items-center justify-center">
               <TransfersChart data={transferData} />
@@ -316,9 +329,7 @@ export default function AdminPage() {
           </div>
         </div>
       ) : (
-        <div className="text-3xl text-red-600 font-bold text-center mb-6">
-          Unauthorized Access - Admin Main
-        </div>
+        <div className="text-3xl text-red-600 font-bold text-center mb-6"></div>
       )}
     </div>
   );

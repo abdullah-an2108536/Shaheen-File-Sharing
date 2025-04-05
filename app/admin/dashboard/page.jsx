@@ -3,7 +3,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import FileRow from "@/components/og-comp/ui-non-chad/FileRow";
 import Navigation from "@/components/navigation";
 import SearchBar from "@/components/og-comp/ui-non-chad/SearchBar";
-import {SortAsc } from "lucide-react";
+import { SortAsc } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 // import styles from "./styles.css"; // ← Tailwind/layer styles
@@ -30,18 +30,25 @@ export default function AdminDashboard() {
     );
   }
 
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(null); // initially unknown
+  const [showLogin, setShowLogin] = useState(false); // For login modal
+
   useEffect(() => {
     const checkAdmin = async () => {
-      const res = await fetch("/api/check-admin");
-      const { isAdmin } = await res.json();
-      setIsAdmin(isAdmin);
+      try {
+        const res = await fetch("/api/check-admin");
+        const { isAdmin } = await res.json();
+        setIsAdmin(isAdmin);
+      } catch (err) {
+        console.error("Failed to check admin status:", err);
+        setIsAdmin(false);
+      }
     };
-
     checkAdmin();
   }, []);
 
   useEffect(() => {
+    if (!isAdmin) return; // Don't fetch status if not admin
     const fetchMetadata = async () => {
       setLoading(true); // Show skeleton
       try {
@@ -77,7 +84,7 @@ export default function AdminDashboard() {
     };
 
     fetchMetadata();
-  }, []);
+  }, [isAdmin]);
 
   //used for searching
   // const filteredFiles = useMemo(() => {
@@ -120,10 +127,15 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-100">
       {/* Top Bar */}
-      <Navigation />
 
-      {/* Main Content */}
-      {isAdmin ? (
+      <Navigation showLoginWindow={isAdmin === false} isAdmin={isAdmin} />
+
+      {/* Wait until admin check is completed */}
+      {isAdmin === null ? (
+        <div className="text-center mt-20 text-gray-500 text-xl">
+          Checking access...
+        </div>
+      ) : isAdmin ? (
         <div className="flex-grow p-6">
           {/* Title */}
           <div className="text-3xl font-bold text-center mb-6">
@@ -226,9 +238,7 @@ export default function AdminDashboard() {
           </div>
         </div>
       ) : (
-        <div className="text-3xl text-red-600 font-bold text-center mb-6">
-          Unauthorized Access - Admin Dash
-        </div>
+        <div className="text-3xl text-red-600 font-bold text-center mb-6"></div>
       )}
     </div>
   );

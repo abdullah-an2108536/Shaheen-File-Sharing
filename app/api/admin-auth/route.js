@@ -10,12 +10,11 @@ export async function POST(req) {
   const ADMIN_HASH = process.env.ADMIN_PASS;
   const SALT = process.env.ADMIN_SALT;
 
- 
   //   const SALT = "kjOOeuZuAXheBsyidihKRA==";
 
-  console.log("ENV USER:", ADMIN_USERNAME);
-  console.log("ENV HASH:", ADMIN_HASH);
-  console.log("ENV SALT:", SALT);
+  // console.log("ENV USER:", ADMIN_USERNAME);
+  // console.log("ENV HASH:", ADMIN_HASH);
+  // console.log("ENV SALT:", SALT);
 
   if (!username || !password) {
     return NextResponse.json({ error: "Missing credentials" }, { status: 400 });
@@ -30,7 +29,10 @@ export async function POST(req) {
   }
 
   // Set secure HttpOnly cookie
-  cookies().set("admin_auth", "true", {
+
+  const cookieStore = await cookies(); //   Await cookies()
+
+  cookieStore.set("admin_auth", "true", {
     httpOnly: true,
     secure: true,
     sameSite: "Strict",

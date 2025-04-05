@@ -7,38 +7,62 @@ import React, { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-import DropDownAdmin from "@/components/og-comp/admin/DropDownAdmin"; // ✅ Import dropdown
+// import DropDownAdmin from "@/components/og-comp/admin/DropDownAdmin"; // ✅ Import dropdown
 import CustomButton from "@/components/og-comp/ui-non-chad/CustomButton";
 import LoginForm from "@/components/og-comp/ui-non-chad/LoginForm";
 
-export default function Navigation() {
+export default function Navigation({
+  showLoginWindow = false,
+  isAdmin: adminFromParent
+}) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [showLogin, setShowLogin] = useState(false);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [showLogin, setShowLogin] = useState(showLoginWindow);
+  // const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
+  
 
-  
   useEffect(() => {
-    const checkAdmin = async () => {
-      const res = await fetch("/api/check-admin");
-      const { isAdmin } = await res.json();
-      setIsAdmin(isAdmin);
-    };
-  
-    checkAdmin();
-  }, []);
-  
+    if (adminFromParent !== undefined) {
+      setIsAdmin(adminFromParent);
+    } else {
+      const checkAdmin = async () => {
+        const res = await fetch("/api/check-admin");
+        const { isAdmin } = await res.json();
+        setIsAdmin(isAdmin);
+      };
+      checkAdmin();
+    }
+  }, [adminFromParent]);
+
+
+  // useEffect(() => {
+  //   const checkAdmin = async () => {
+  //     const res = await fetch("/api/check-admin");
+  //     const { isAdmin } = await res.json();
+  //     setIsAdmin(isAdmin);
+  //   };
+
+  //   checkAdmin();
+  // }, []);
+
+
+  // Inside Navigation component
+  useEffect(() => {
+    setShowLogin(showLoginWindow);
+  }, [showLoginWindow]);
+
+
 
   return (
     <>
       {showLogin && <LoginForm onClose={() => setShowLogin(false)} />}
       <header className="flex   w-full  sticky top-0 z-50 border-b bg-background/95 backdrop-blur">
         <div className="  flex w-full  items-center p-4 h-16">
-          {isAdmin && pathname.startsWith("/admin") && (
+          {/* {isAdmin && pathname.startsWith("/admin") && (
             <div className="relative">
-              {/* ✅ Add relative container */}
+         
               <button
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                 className="text-gray-600 hover:scale-105"
@@ -46,11 +70,11 @@ export default function Navigation() {
                 <Menu size={24} />
               </button>
               <div className="left-40 bottom-8 absolute">
-                {/* ✅ Position dropdown directly under the button */}
+     
                 <DropDownAdmin isOpen={isDropdownOpen} />
               </div>
             </div>
-          )}
+          )} */}
           <div className=" flex h-16 w-full  items-center justify-between px-4">
             <Link href="/" className="flex items-center  gap-3">
               <Image
@@ -71,7 +95,7 @@ export default function Navigation() {
                 Send
               </Link>
               <Link
-                href="/receive"
+                href="/receive/download"
                 className="text-sm font-medium transition-colors hover:text-primary"
               >
                 Receive
@@ -90,7 +114,8 @@ export default function Navigation() {
           </Link> */}
 
               {/* Admin Controls */}
-              {isAdmin && !pathname.startsWith("/admin") ? (
+              {(isAdmin && !pathname.startsWith("/admin")) ||
+              pathname.startsWith("/admin/dashboard") ? (
                 <div className="flex items-center space-x-3">
                   <CustomButton
                     label="Logout"
@@ -103,31 +128,39 @@ export default function Navigation() {
                         setIsAdmin(false);
                         router.push("/");
                       });
-                      
                     }}
                   />
 
                   <CustomButton
-                    label="Go To Admin Page"
+                    label="Go To Main Admin Page"
                     className="bg-slate-500 hover:text-gray-800 p-2 rounded"
                     onClick={() => router.push("/admin")}
                   />
                 </div>
-              ) : isAdmin ? (
-                <CustomButton
-                  label="Logout"
-                  className="bg-red-400 hover:text-gray-100 p-2 rounded"
-                  onClick={() => {
-                    // sessionStorage.removeItem("isAdmin");
-                    // setIsAdmin(false);
-                    // router.push("/");
-                    fetch("/api/logout", { method: "POST" }).then(() => {
-                      setIsAdmin(false);
-                      router.push("/");
-                    });
-                    
-                  }}
-                />
+              ) : isAdmin &&
+                pathname.startsWith("/admin") &&
+                !pathname.startsWith("/admin/dashboard") ? (
+                <div className="flex items-center space-x-3">
+                  <CustomButton
+                    label="Logout"
+                    className="bg-red-400 hover:text-gray-100 p-2 rounded"
+                    onClick={() => {
+                      // sessionStorage.removeItem("isAdmin");
+                      // setIsAdmin(false);
+                      // router.push("/");
+                      fetch("/api/logout", { method: "POST" }).then(() => {
+                        setIsAdmin(false);
+                        router.push("/");
+                      });
+                    }}
+                  />
+
+                  <CustomButton
+                    label="Dashboard"
+                    className="bg-slate-500 hover:text-gray-800 p-2 rounded"
+                    onClick={() => router.push("/admin/dashboard")}
+                  />
+                </div>
               ) : (
                 <CustomButton
                   label="Admin"
@@ -181,52 +214,56 @@ export default function Navigation() {
             >
               About
             </Link>
+
             {/* Admin Controls */}
             <div className="w-[50%]">
-              {isAdmin && !pathname.startsWith("/admin") ? (
+              {(isAdmin && !pathname.startsWith("/admin")) ||
+              pathname.startsWith("/admin/dashboard") ? (
                 <div className="flex items-center space-x-3">
                   <CustomButton
                     label="Logout"
                     className="bg-red-400 hover:text-gray-100 p-2 rounded"
                     onClick={() => {
-                      setIsMenuOpen(false);
                       // sessionStorage.removeItem("isAdmin");
                       // setIsAdmin(false);
                       // router.push("/");
-
                       fetch("/api/logout", { method: "POST" }).then(() => {
                         setIsAdmin(false);
                         router.push("/");
                       });
-                      
                     }}
                   />
 
                   <CustomButton
-                    label="Go To Admin Page"
+                    label="Go To Main Admin Page"
                     className="bg-slate-500 hover:text-gray-800 p-2 rounded"
-                    onClick={() => {
-                      setIsMenuOpen(false);
-                      router.push("/admin");
-                    }}
+                    onClick={() => router.push("/admin")}
                   />
                 </div>
-              ) : isAdmin ? (
-                <CustomButton
-                  label="Logout"
-                  className="bg-red-400 hover:text-gray-100 p-2 rounded"
-                  onClick={() => {
-                    setIsMenuOpen(false);
-                    // sessionStorage.removeItem("isAdmin");
-                    // setIsAdmin(false);
-                    // router.push("/");
-                    fetch("/api/logout", { method: "POST" }).then(() => {
-                      setIsAdmin(false);
-                      router.push("/");
-                    });
-                    
-                  }}
-                />
+              ) : isAdmin &&
+                pathname.startsWith("/admin") &&
+                !pathname.startsWith("/admin/dashboard") ? (
+                <div className="flex items-center space-x-3">
+                  <CustomButton
+                    label="Logout"
+                    className="bg-red-400 hover:text-gray-100 p-2 rounded"
+                    onClick={() => {
+                      // sessionStorage.removeItem("isAdmin");
+                      // setIsAdmin(false);
+                      // router.push("/");
+                      fetch("/api/logout", { method: "POST" }).then(() => {
+                        setIsAdmin(false);
+                        router.push("/");
+                      });
+                    }}
+                  />
+
+                  <CustomButton
+                    label="Dashboard"
+                    className="bg-slate-500 hover:text-gray-800 p-2 rounded"
+                    onClick={() => router.push("/admin/dashboard")}
+                  />
+                </div>
               ) : (
                 <CustomButton
                   label="Admin"

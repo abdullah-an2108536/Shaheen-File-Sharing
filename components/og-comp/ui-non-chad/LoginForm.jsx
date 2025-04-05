@@ -1,8 +1,8 @@
 "use client";
 import React, { useState } from "react";
-import { useRouter } from "next/navigation";
-import { hashPassword, comparePasswords } from "@/lib/crypto";
-import CustomButton from "@/components/og-comp/ui-non-chad/CustomButton";
+import { useRouter, usePathname } from "next/navigation";
+// import { hashPassword, comparePasswords } from "@/lib/crypto";
+// import CustomButton from "@/components/og-comp/ui-non-chad/CustomButton";
 import { X } from "lucide-react";
 
 export default function LoginForm({ onClose }) {
@@ -10,10 +10,13 @@ export default function LoginForm({ onClose }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [pass, setPass] = useState(false);
+  const [loading, setLoading] = useState(false); // ✅ Spinner
   const router = useRouter();
+  const pathname = usePathname();
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setLoading(true); // ✅ Start loading
 
     try {
       const res = await fetch("/api/admin-auth", {
@@ -25,43 +28,43 @@ export default function LoginForm({ onClose }) {
       if (!res.ok) {
         const data = await res.json();
         setError(data.error || "Authentication failed");
+        setLoading(false);
         return;
       }
 
-      router.push("/admin"); // ✅ Server will check auth based on cookie
+      setPass(true);
+      setError("");
+      setLoading(false);
+
+      //   onClose(); // 
+
+      if (pathname.startsWith("/admin")) {
+        router.refresh(); // ✅ Refresh if already there
+        // router.push("/admin");
+      } else {
+        router.push("/admin"); // ✅ Otherwise, navigate
+      }
+
+      // ✅ Show green success message briefly
+      // setTimeout(() => {
+      //   onClose(); // 
+
+      //   if (pathname.startsWith("/admin")) {
+      //     router.refresh(); // ✅ Refresh if already there
+      //     // router.push("/admin");
+      //   } else {
+      //     router.push("/admin"); // ✅ Otherwise, navigate
+      //   }
+      // }, 1200);
     } catch (err) {
       setError("Unexpected error during login");
+      setLoading(false);
       console.error(err);
     }
   };
 
-  // const handleLogin = async (e) => {
-  //   e.preventDefault();
-
-  //   const ADMIN_USERNAME = process.env.NEXT_PUBLIC_ADMIN_USER;
-  //   const ADMIN_HASH = process.env.NEXT_PUBLIC_ADMIN_PASS;
-  //   const SALT = "kjOOeuZuAXheBsyidihKRA==";
-
-  //   const hashedInputPassword = await hashPassword(password, SALT);
-
-  //   if (
-  //     username === ADMIN_USERNAME &&
-  //     (await comparePasswords(password, ADMIN_HASH, SALT))
-  //   ) {
-  //     sessionStorage.setItem("isAdmin", "true");
-  //     setPass(true);
-  //     router.push("/admin");
-  //   } else {
-  //     setError("Invalid credentials");
-  //   }
-  // };
-
-  // const handleClose = () => {
-  //   router.push("/"); // Navigate back to home when clicking "X"
-  // };
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50  transition-transform duration-300 hover:scale-105">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 transition-transform duration-300 hover:scale-105">
       <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full relative">
         {/* Close Button (X) */}
         <button
@@ -72,7 +75,7 @@ export default function LoginForm({ onClose }) {
         </button>
 
         {/* Logo */}
-        <div className="flex flex-col items-center justify-center  mb-4">
+        <div className="flex flex-col items-center justify-center mb-4">
           <img
             src="/logo.png"
             alt="Shaheen Logo"
@@ -85,9 +88,16 @@ export default function LoginForm({ onClose }) {
 
         <div className="text-center text-2xl font-bold mb-4">Login</div>
 
-        {error && <div className="text-red-500 text-center">{error}</div>}
+        {error && <div className="text-red-500 text-center mb-2">{error}</div>}
         {pass && (
-          <div className="text-green-500 p-2 text-center">Welcome Admin</div>
+          <>
+            <div className="text-green-500 p-2 text-center">Welcome Admin</div>
+            {pathname.startsWith("/admin") && (
+              <div className="text-green-500 p-2 text-center">
+                You May Have to Refresh the page to see the changes
+              </div>
+            )}
+          </>
         )}
 
         <form onSubmit={handleLogin}>
@@ -98,6 +108,7 @@ export default function LoginForm({ onClose }) {
             onChange={(e) => setUsername(e.target.value)}
             className="w-full p-2 border rounded mb-2"
             required
+            disabled={loading}
           />
           <input
             type="password"
@@ -106,14 +117,41 @@ export default function LoginForm({ onClose }) {
             onChange={(e) => setPassword(e.target.value)}
             className="w-full p-2 border rounded mb-4"
             required
+            disabled={loading}
           />
 
-          {/* Custom Button Instead of Default Button */}
           <button
             type="submit"
-            className="transition-transform duration-300 hover:scale-105 w-full bg-blue-600 text-white p-2 rounded"
+            className="transition-transform duration-300 hover:scale-105 w-full bg-blue-600 text-white p-2 rounded flex items-center justify-center"
+            disabled={loading}
           >
-            Login
+            {loading ? (
+              <div className="flex items-center space-x-2">
+                <svg
+                  className="animate-spin h-5 w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                  ></path>
+                </svg>
+                <span>Logging in...</span>
+              </div>
+            ) : (
+              "Login"
+            )}
           </button>
         </form>
       </div>
