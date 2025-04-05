@@ -22,6 +22,7 @@ export default function FileRow({
   expirationDate,
   uploadDate,
   accessError = null,
+  runtimeError = null,
 
   isAdmin = false,
   fromGoogle,
@@ -207,6 +208,11 @@ export default function FileRow({
               </div>
             )}
           </div>
+          {runtimeError && (
+            <div className="mt-2 p-2 rounded text-sm bg-red-100 text-red-600">
+              ❌ ❗ {runtimeError}
+            </div>
+          )}
         </div>
       )}
 

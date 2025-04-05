@@ -10,7 +10,8 @@ import {
   getAllSharedStoredKeys,
   getSharedSecretBySenderPublicKey,
   decryptFile,
-  getMacSharedSecretBySenderPublicKey
+  getMacSharedSecretBySenderPublicKey,
+  computeMAC
 } from "@/lib/crypto";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -164,8 +165,26 @@ export default function DownloadPage() {
     fetchAndBuildFiles();
   }, []);
 
-  // Step 2: Download Handler (triggered when download button is clicked)
   const handleDownload = async (file) => {
+    //  Helper: Show inline error temporarily under the FileRow
+    const showRuntimeError = (msg) => {
+      setFiles((prev) =>
+        prev.map((f) =>
+          f.id === file.id
+            ? { ...f, disableDownload: false, runtimeError: msg }
+            : f
+        )
+      );
+  
+      setTimeout(() => {
+        setFiles((prev) =>
+          prev.map((f) =>
+            f.id === file.id ? { ...f, runtimeError: null } : f
+          )
+        );
+      }, 3000);
+    };
+  
     try {
       // Disable button immediately
       setFiles((prev) =>
@@ -174,18 +193,21 @@ export default function DownloadPage() {
         )
       );
       setProgressMap((prev) => ({ ...prev, [file.id]: 5 }));
-
+  
       // Step 2.1: Get MAC shared secret from IndexedDB
-      const macSharedSecret = await getMacSharedSecretBySenderPublicKey(
-        file.id
-      );
-      if (!macSharedSecret) throw new Error("Missing MAC shared secret");
-
+      const macSharedSecret = await getMacSharedSecretBySenderPublicKey(file.id);
+      if (!macSharedSecret) {
+        // console.error("Missing MAC shared secret");
+        showRuntimeError("Missing MAC shared secret");
+        setProgressMap((prev) => ({ ...prev, [file.id]: 0 }));
+        return;
+      }
+  
       // Step 2.2: Request file (MAC & time checks handled server-side)
       const response = await fetch(
         `/api/get-file?senderPublicKey=${encodeURIComponent(file.id)}`
       );
-
+  
       if (!response.ok) {
         const errorText = await response.text();
         toast({
@@ -193,31 +215,82 @@ export default function DownloadPage() {
           description: errorText || "Access rules blocked the download",
           variant: "destructive"
         });
-        throw new Error(`Server denied file: ${errorText}`);
+        // console.error(`Server denied file: ${errorText}`);
+        showRuntimeError(errorText || "Server denied file");
+        setProgressMap((prev) => ({ ...prev, [file.id]: 0 }));
+        return;
       }
 
+      setProgressMap((prev) => ({ ...prev, [file.id]: 10 }));
+  
+      // Step 2.2.5: Get Metadata to compare with the mac
+      const res = await fetch(
+        `/api/fetch-metadata?senderPublicKey=${encodeURIComponent(file.id)}`
+      );
+  
+      if (!res.ok) {
+        // console.error(`Failed to fetch metadata`);
+        showRuntimeError("Failed to fetch metadata");
+        setProgressMap((prev) => ({ ...prev, [file.id]: 0 }));
+        return;
+      }
+  
+      const { metadata } = await res.json();
+
+      setProgressMap((prev) => ({ ...prev, [file.id]: 20 }));
+  
       // Step 2.3: Get encrypted file buffer
       const encryptedBuffer = await response.arrayBuffer();
+  
+      // Compute MAC for the encrypted file
+      let macComputedOnReciverSide;
+      try {
+        macComputedOnReciverSide = await computeMAC(
+          encryptedBuffer,
+          macSharedSecret
+        );
+  
+        if (macComputedOnReciverSide !== metadata.mac) {
+          // console.error("⚠️ MAC mismatch: File may have been tampered with");
+          showRuntimeError("MAC mismatch! File may be tampered with.");
+          setProgressMap((prev) => ({ ...prev, [file.id]: 0 }));
+          return;
+        }
+  
+        console.log("File is valid and not tampered with.");
+      } catch (macError) {
+        // console.error(`MAC computation failed: ${macError.message}`);
+        showRuntimeError(`MAC computation failed`);
+        setProgressMap((prev) => ({ ...prev, [file.id]: 0 }));
+        return;
+      }
 
+
+  
       // Step 2.4: Retrieve shared secret from IndexedDB
       const sharedSecret = await getSharedSecretBySenderPublicKey(file.id);
-      if (!sharedSecret) throw new Error("Missing shared secret");
-
+      if (!sharedSecret) {
+        // console.error("Missing shared secret");
+        showRuntimeError("Missing shared secret");
+        setProgressMap((prev) => ({ ...prev, [file.id]: 0 }));
+        return;
+      }
+  
       setProgressMap((prev) => ({ ...prev, [file.id]: 50 }));
-
+  
       // Step 2.5: Decrypt the file
       const decryptedBuffer = await decryptFile(encryptedBuffer, sharedSecret);
       setProgressMap((prev) => ({ ...prev, [file.id]: 80 }));
-
+  
       // Step 2.6: Trigger download
       const blob = new Blob([decryptedBuffer], { type: file.fileType });
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
       link.download = file.fileName;
       link.click();
-
+  
       setProgressMap((prev) => ({ ...prev, [file.id]: 100 }));
-
+  
       // Step 2.7: Call server to decrement access count
       await fetch(
         `/api/fetch-metadata?senderPublicKey=${encodeURIComponent(file.id)}`,
@@ -225,7 +298,7 @@ export default function DownloadPage() {
           method: "PUT"
         }
       );
-
+  
       // Step 2.8: Update UI state
       setTimeout(() => {
         setProgressMap((prev) => ({ ...prev, [file.id]: 0 }));
@@ -243,14 +316,14 @@ export default function DownloadPage() {
       }, 1500);
     } catch (err) {
       console.error(`❌ Download failed for ${file.fileName}:`, err);
+  
+      // Temporarily show the error under the file
+      showRuntimeError(err.message);
+  
       setProgressMap((prev) => ({ ...prev, [file.id]: 0 }));
-      setFiles((prev) =>
-        prev.map((f) =>
-          f.id === file.id ? { ...f, disableDownload: false } : f
-        )
-      );
     }
   };
+  
 
   const handleRemoveFile = (fileId) => {
     setFiles((prev) => prev.filter((f) => f.id !== fileId));
@@ -347,6 +420,7 @@ export default function DownloadPage() {
                       onDownload={() => handleDownload(file)}
                       onRemove={() => handleRemoveFile(file.id)}
                       accessError={file.accessError}
+                      runtimeError={file.runtimeError}
                       disableDownload={file.disableDownload}
                       status={
                         progressMap[file.id] > 0 && progressMap[file.id] < 100
