@@ -47,6 +47,15 @@ export default function AdminDashboard() {
     checkAdmin();
   }, []);
 
+
+  //🧪 Optional: redirect users from the Dashboard client-side if they are not admin:
+  // useEffect(() => {
+  //   if (isAdmin === false) {
+  //     router.push("/");
+  //   }
+  // }, [isAdmin]);
+  
+
   useEffect(() => {
     if (!isAdmin) return; // Don't fetch status if not admin
     const fetchMetadata = async () => {
