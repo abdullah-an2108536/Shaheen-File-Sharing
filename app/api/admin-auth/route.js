@@ -1,7 +1,11 @@
 // app/api/admin-auth/route.js
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { comparePasswordsServer } from "@/lib/server/adminFunc"; // ✅ SERVER version
+import jwt from "jsonwebtoken";
+import crypto from "crypto";
+import { comparePasswordsServer } from "@/lib/server/adminFunc";
+
+const JWT_SECRET = process.env.JWT_SECRET;
 
 export async function POST(req) {
   const { username, password } = await req.json();
@@ -9,16 +13,6 @@ export async function POST(req) {
   const ADMIN_USERNAME = process.env.ADMIN_USER;
   const ADMIN_HASH = process.env.ADMIN_PASS;
   const SALT = process.env.ADMIN_SALT;
-
-  //   const SALT = "kjOOeuZuAXheBsyidihKRA==";
-
-  // console.log("ENV USER:", ADMIN_USERNAME);
-  // console.log("ENV HASH:", ADMIN_HASH);
-  // console.log("ENV SALT:", SALT);
-
-  if (!username || !password) {
-    return NextResponse.json({ error: "Missing credentials" }, { status: 400 });
-  }
 
   const isValid =
     username === ADMIN_USERNAME &&
@@ -28,16 +22,30 @@ export async function POST(req) {
     return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
   }
 
-  // Set secure HttpOnly cookie
+  // ✅ Get client IP
+  const forwarded = req.headers.get("x-forwarded-for");
+  const ip = forwarded?.split(",")[0]?.trim() || "unknown";
 
-  const cookieStore = await cookies(); //   Await cookies()
+  const ipHash = crypto.createHash("sha256").update(ip).digest("hex");
 
-  cookieStore.set("admin_auth", "true", {
+  // ✅ Create JWT with IP hash
+  const token = jwt.sign(
+    {
+      username: ADMIN_USERNAME,
+      role: "admin",
+      ipHash,
+    },
+    JWT_SECRET,
+    { expiresIn: "4h" }
+  );
+
+  const cookieStore = await cookies();
+  cookieStore.set("admin_token", token, {
     httpOnly: true,
     secure: true,
     sameSite: "Strict",
     maxAge: 60 * 60 * 4, // 4 hours
-    path: "/"
+    path: "/",
   });
 
   return NextResponse.json({ success: true });

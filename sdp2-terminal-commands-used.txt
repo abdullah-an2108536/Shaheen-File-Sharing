@@ -27,5 +27,17 @@ npm i react-collapse
 # Don't use this
 #DON't use this -- >npm install jsonwebtoken
 
+
+# in case of errors
+# Delete node_modules folder
+Remove-Item -Recurse -Force .\node_modules
+
+# Delete package-lock.json file
+Remove-Item -Force .\package-lock.json
+
+npm install
+
+
+
 npm run dev
 
