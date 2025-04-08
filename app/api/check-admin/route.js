@@ -15,7 +15,6 @@ export async function GET(req) {
 
     if (!JWT_SECRET) {
       //temp fix until we resolve the issue with JWT_SECRET not being defined in the environment variables
-      console.warn("⚠️ JWT_SECRET not defined. Using fallback secret.");
       JWT_SECRET = "K9x!d2$B7tL8zQ@cR3WmNpV5JhX0uE1g";
       // throw new Error("JWT_SECRET is not defined in the environment variables.");
     }
@@ -25,26 +24,20 @@ export async function GET(req) {
     //   );
     // }
 
+    const decoded = jwt.verify(token, JWT_SECRET);
 
-    const decoded = jwt.verify(token, secret);
-
-    // Extract and hash client IP
-    let clientIP =
-      req.headers.get("x-forwarded-for") ||
-      req.headers.get("x-real-ip") ||
-      "unknown";
-
-    clientIP = clientIP.split(",")[0]?.trim();
-
-    console.warn("⚠️ Client IP:", clientIP);
-
+    // ✅ Extract real IP
+    const forwarded = req.headers.get("x-forwarded-for");
+    //✅ Hash the IP address to store in the JWT
+    const currentIP = forwarded?.split(",")[0]?.trim() || "unknown";
+    alert("Testing Before")
+    
     try {
-      console.warn("⚠️ Client IP:", clientIP);
-      console.log("Client IP:", clientIP);
-      console.warn("⚠️ Client IP:", clientIP);
-
-    } catch (_) {}
-
+      alert("Current IP :", forwarded);
+    }catch(_) {
+      // console.error("Error logging current IP:", err.message);
+    }
+    alert("Testing after")
 
     //✅ Hash the IP address to store in the JWT
     const currentHash = crypto
