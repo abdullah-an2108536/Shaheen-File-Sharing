@@ -14,16 +14,17 @@ export async function GET(req) {
     if (!token) return NextResponse.json({ isAdmin: false });
 
     if (!JWT_SECRET) {
-      //temp fix until we resolve the issue with JWT_SECRET not being defined in the environment variables
-      JWT_SECRET = "K9x!d2$B7tL8zQ@cR3WmNpV5JhX0uE1g";
-      // throw new Error("JWT_SECRET is not defined in the environment variables.");
+      throw new Error("JWT_SECRET is not defined in the environment variables.");
     }
 
     const decoded = jwt.verify(token, JWT_SECRET);
 
     // ✅ Extract real IP
     const forwarded = req.headers.get("x-forwarded-for");
+    //✅ Hash the IP address to store in the JWT
     const currentIP = forwarded?.split(",")[0]?.trim() || "unknown";
+    console.log("Current IP:", currentIP);
+    //✅ Hash the IP address to store in the JWT
     const currentHash = crypto
       .createHash("sha256")
       .update(currentIP)
