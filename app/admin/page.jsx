@@ -173,11 +173,11 @@ export default function AdminPage() {
           <div className="text-3xl font-bold text-center mb-6">Admin Main</div>
 
           {/* Status Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-5 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
             <StatusCard
               icon={BarChart}
               iconBgColor="bg-blue-200"
-              title="Files in Main Google Drive"
+              title="Files in Google Drive"
               value={status?.filesPerCloud?.google ?? "—"}
               showPercentage={false}
               small
@@ -185,7 +185,7 @@ export default function AdminPage() {
             <StatusCard
               icon={BarChart}
               iconBgColor="bg-pink-200"
-              title="Files in Backup One Drive"
+              title="Files in One Drive"
               value={status?.filesPerCloud?.oneDrive ?? "—"}
               showPercentage={false}
               small
@@ -193,7 +193,7 @@ export default function AdminPage() {
             <StatusCard
               icon={BarChart}
               iconBgColor="bg-purple-200"
-              title="Total No. Of Files in All Storages"
+              title="Files in All Storages"
               value={
                 String(
                   status?.filesPerCloud?.google +
