@@ -14,15 +14,10 @@ export async function GET(req) {
     if (!token) return NextResponse.json({ isAdmin: false });
 
     if (!JWT_SECRET) {
-      //temp fix until we resolve the issue with JWT_SECRET not being defined in the environment variables
-      JWT_SECRET = "K9x!d2$B7tL8zQ@cR3WmNpV5JhX0uE1g";
-      // throw new Error("JWT_SECRET is not defined in the environment variables.");
+      throw new Error(
+        "JWT_SECRET is not defined in the environment variables."
+      );
     }
-    // if (!JWT_SECRET) {
-    //   throw new Error(
-    //     "JWT_SECRET is not defined in the environment variables."
-    //   );
-    // }
 
     const decoded = jwt.verify(token, JWT_SECRET);
 
@@ -30,14 +25,14 @@ export async function GET(req) {
     const forwarded = req.headers.get("x-forwarded-for");
     //✅ Hash the IP address to store in the JWT
     const currentIP = forwarded?.split(",")[0]?.trim() || "unknown";
-    alert("Testing Before")
+    // alert("Testing Before")
     
-    try {
-      alert("Current IP :", forwarded);
-    }catch(_) {
-      // console.error("Error logging current IP:", err.message);
-    }
-    alert("Testing after")
+    // try {
+    //   alert("Current IP :", forwarded);
+    // }catch(_) {
+    //   // console.error("Error logging current IP:", err.message);
+    // }
+    // alert("Testing after")
 
     //✅ Hash the IP address to store in the JWT
     const currentHash = crypto
