@@ -68,17 +68,6 @@ export default function AdminPage() {
     checkAdmin();
   }, []);
 
-
-  useEffect(() => {
-    const getClientIP = async () => {
-      const res = await fetch("/api/admin/ip-test");
-      const data = await res.json();
-      console.log("Client IP:", data);
-      
-    };
-  
-    getClientIP();
-  }, []);
   
 
   //🧪 Optional: redirect users from the Dashboard client-side if they are not admin:
