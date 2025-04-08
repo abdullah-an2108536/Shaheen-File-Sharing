@@ -71,7 +71,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     const getClientIP = async () => {
-      const res = await fetch("/api/ip");
+      const res = await fetch("/api/admin/ip-test");
       const data = await res.json();
       console.log("Client IP:", data.ip);
       alert("Client IP:", data.ip);
