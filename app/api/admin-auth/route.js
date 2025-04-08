@@ -38,7 +38,7 @@ export async function POST(req) {
   // ✅ Get client IP
   const forwarded = req.headers.get("x-forwarded-for");
   const ip = forwarded?.split(",")[0]?.trim() || "unknown";
-  console.log("Current IP:", ip);
+  // console.log("Current IP:", ip);
   //✅ Hash the IP address to store in the JWT
   const ipHash = crypto.createHash("sha256").update(ip).digest("hex");
 

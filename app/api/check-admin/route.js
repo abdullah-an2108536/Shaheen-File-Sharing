@@ -30,7 +30,7 @@ export async function GET(req) {
     const forwarded = req.headers.get("x-forwarded-for");
     //✅ Hash the IP address to store in the JWT
     const currentIP = forwarded?.split(",")[0]?.trim() || "unknown";
-    console.err(currentIP);
+    
 
     //✅ Hash the IP address to store in the JWT
     const currentHash = crypto
