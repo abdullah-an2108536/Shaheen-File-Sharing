@@ -73,8 +73,8 @@ export default function AdminPage() {
     const getClientIP = async () => {
       const res = await fetch("/api/admin/ip-test");
       const data = await res.json();
-      console.log("Client IP:", data.ip);
-      alert("Client IP:", data.ip);
+      console.log("Client IP:", data);
+      
     };
   
     getClientIP();
