@@ -68,13 +68,12 @@ export default function AdminPage() {
     checkAdmin();
   }, []);
 
-    //🧪 Optional: redirect users from the Dashboard client-side if they are not admin:
+  //🧪 Optional: redirect users from the Dashboard client-side if they are not admin:
   // useEffect(() => {
   //   if (isAdmin === false) {
   //     router.push("/");
   //   }
   // }, [isAdmin]);
-
 
   useEffect(() => {
     if (!isAdmin) return; // Don't fetch status if not admin

@@ -7,12 +7,20 @@ import { comparePasswordsServer } from "@/lib/server/adminFunc";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
+
+
 export async function POST(req) {
   const { username, password } = await req.json();
 
   const ADMIN_USERNAME = process.env.ADMIN_USER;
   const ADMIN_HASH = process.env.ADMIN_PASS;
   const SALT = process.env.ADMIN_SALT;
+
+  if(!JWT_SECRET) {
+    //temp fix until we resolve the issue with JWT_SECRET not being defined in the environment variables
+    JWT_SECRET="K9x!d2$B7tL8zQ@cR3WmNpV5JhX0uE1g"
+    // throw new Error("JWT_SECRET is not defined in the environment variables.");
+  }
 
   const isValid =
     username === ADMIN_USERNAME &&
