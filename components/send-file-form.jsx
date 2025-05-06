@@ -30,6 +30,7 @@ import { cn } from "@/lib/utils"
 import { sendFileRequest } from "@/lib/actions"
 import { generateKeyPair, storeKeyPair } from "@/lib/crypto"
 
+import QRCodeDisplay from "@/components/QRCodeDisplay"
 
 
 // validation constants
@@ -581,6 +582,8 @@ export default function SendFileForm() {
   // Step 3: Success
   if (step === "success") {
 
+    <QRCodeDisplay value={shareLink} />
+
     const copyToClipboard = async () => {
       try {
         await navigator.clipboard.writeText(shareLink)
@@ -674,6 +677,8 @@ export default function SendFileForm() {
     </div>
 
     {/* Copy Link */}
+
+
     <div className="border rounded-md p-4 bg-muted">
       <div className="flex items-center gap-2 mb-2">
         <Copy className="h-5 w-5 text-blue-600" />
@@ -692,7 +697,7 @@ export default function SendFileForm() {
     </div>
   </div>
 </div>
-
+<QRCodeDisplay value={shareLink} />
           <div className="rounded-md bg-muted p-6 mb-6">
             <h3 className="mb-4 text-lg font-medium">What happens next?</h3>
             <ol className="list-decimal space-y-3 pl-5">

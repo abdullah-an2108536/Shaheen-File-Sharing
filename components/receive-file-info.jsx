@@ -35,7 +35,7 @@ import {
 } from "@/lib/crypto";
 
 import { sendRecipientPublicKey } from "@/lib/actions";
-
+import QRCodeDisplay from "@/components/QRCodeDisplay"
 export default function ReceiveFileInfo({ searchParams }) {
   const [params, setParams] = useState({});
   const [isProcessing, setIsProcessing] = useState(false);
@@ -489,6 +489,8 @@ export default function ReceiveFileInfo({ searchParams }) {
               </div>
 
               {/* Copy Link */}
+
+              <QRCodeDisplay value={shareLink} />
               <div className="border rounded-md p-4 bg-muted">
                 <div className="flex items-center gap-2 mb-2">
                   <Copy className="h-5 w-5 text-blue-600" />
